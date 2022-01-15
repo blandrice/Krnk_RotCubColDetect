@@ -113,14 +113,15 @@ num action cubelineofsight(obj plr, obj cube) {
     num w = (num) cube.scale.x / 2;
     num h = (num) cube.scale.y / 2;
     num offset = 10;
-    num HEIGHT_STAND = 10.5;
-    num HEIGHT_CROUCH = 7;
+    num HEIGHT_STAND = 10+h;
+    num HEIGHT_CROUCH = 7+h;
+    # num HEIGHT_CROUCH = 7;
     num shootheight = 0;
     if ((bool) plr.crouch) {
-        if ((tnow - tlastStand) < MS_DURATION_UNCROUCH) {
-            shootheight = Math.max(Math.lerp(HEIGHT_STAND,HEIGHT_CROUCH,(tnow - tlastStand)/MS_DURATION_UNCROUCH),HEIGHT_CROUCH);
-        }
+        tlastCrouch = tnow;
+        shootheight = Math.max(Math.lerp(HEIGHT_STAND,HEIGHT_CROUCH,(tnow - tlastStand)/MS_DURATION_UNCROUCH),HEIGHT_CROUCH);
     } else {
+        tlastStand = tnow;
         shootheight = Math.min(Math.lerp(HEIGHT_CROUCH,HEIGHT_STAND,(tnow - tlastCrouch)/MS_DURATION_UNCROUCH),HEIGHT_STAND);
     }
 	cube.position.x = (num) plr.position.x-(h/Math.sqrt(2))*Math.sin((num)plr.rotation.x)*(Math.sin((num)plr.rotation.y));
@@ -161,9 +162,13 @@ public action start() {
 public action onPlayerUpdate(str id, num delta, static obj inputs) {
     tnow = GAME.TIME.now();
     obj plr = GAME.PLAYERS.getSelf();
+    if ((bool)inputs.crouch){
+        plr.crouch = true;
+    } else{
+        plr.crouch = false;
+    }
     if ((bool)inputs.lMouse) {
-        cubelineofsight(plr, bullet);
-
+        cubelineofsight(plr,bullet);   
         for (num i = 0; i < lengthOf cubeList; i++) {
             obj cube = cubeList[i];
             if (detectCollision(cube,bullet)) {
